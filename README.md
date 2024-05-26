@@ -14,7 +14,7 @@ Yu Luo, Tianying Ji, Fuchun Sun*,  Jianwei Zhang, Huazhe Xu, Xianyuan Zhan
 
 Offline-Boosted Actor-Critic (OBAC), a model-free online RL framework that elegantly identifies the outperforming offline policy through value comparison, and uses it as an adaptive constraint to guarantee stronger policy learning performance. 
 
-<img src="assets/intuition.png" width="50%" style="max-width: 640px">
+<img src="assets/intuition.png" width="60%" style="max-width: 640px">
 
 We evaluate our method across **53** diverse continuous control tasks spanning \textbf{6} domains: **Mujoco**, **DMControl**, **Meta-World**, **Adroit**, **Myosuite**, and **Maniskill2**, comparing it with [BAC](https://arxiv.org/abs/2306.02865), [TD-MPC2](https://arxiv.org/abs/2310.16828), [SAC](https://arxiv.org/abs/1801.01290), and [TD3](https://arxiv.org/abs/1801.01290).
 

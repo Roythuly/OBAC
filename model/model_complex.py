@@ -19,15 +19,17 @@ class ValueNetwork(nn.Module):
         super(ValueNetwork, self).__init__()
 
         self.linear1 = nn.Linear(num_inputs, hidden_dim)
+        self.dropout = nn.Dropout(0.01, inplace=True)
         self.linear2 = nn.Linear(hidden_dim, hidden_dim)
-        self.LayerNorm = nn.LayerNorm(hidden_dim)
+        self.LayerNorm1 = nn.LayerNorm(hidden_dim)
+        self.LayerNorm2 = nn.LayerNorm(hidden_dim)
         self.linear3 = nn.Linear(hidden_dim, 1)
 
         self.apply(weights_init_)
 
     def forward(self, state):
-        x = torch.tanh(self.LayerNorm((self.linear1(state))))
-        x = F.elu(self.linear2(x))
+        x = F.elu(self.LayerNorm1(self.dropout(self.linear1(state))))
+        x = F.elu(self.LayerNorm2(self.linear2(x)))
         x = self.linear3(x)
         return x
 
@@ -37,15 +39,19 @@ class QNetwork(nn.Module):
         super(QNetwork, self).__init__()
 
         # Q1 architecture
-        self.linear1 = nn.Linear(num_inputs + num_actions, hidden_dim)
+        self.linear1 = nn.Linear(num_inputs+num_actions, hidden_dim)
+        self.dropout1 = nn.Dropout(0.01, inplace=True)
         self.linear2 = nn.Linear(hidden_dim, hidden_dim)
         self.LayerNorm1 = nn.LayerNorm(hidden_dim)
+        self.LayerNorm2 = nn.LayerNorm(hidden_dim)
         self.linear3 = nn.Linear(hidden_dim, 1)
 
         # Q2 architecture
-        self.linear4 = nn.Linear(num_inputs + num_actions, hidden_dim)
+        self.linear4 = nn.Linear(num_inputs+num_actions, hidden_dim)
+        self.dropout2 = nn.Dropout(0.01, inplace=True)
         self.linear5 = nn.Linear(hidden_dim, hidden_dim)
-        self.LayerNorm2 = nn.LayerNorm(hidden_dim)
+        self.LayerNorm3 = nn.LayerNorm(hidden_dim)
+        self.LayerNorm4 = nn.LayerNorm(hidden_dim)
         self.linear6 = nn.Linear(hidden_dim, 1)
 
         self.apply(weights_init_)
@@ -53,12 +59,12 @@ class QNetwork(nn.Module):
     def forward(self, state, action):
         xu = torch.cat([state, action], 1)
         
-        x1 = torch.tanh(self.LayerNorm1(self.linear1(xu)))
-        x1 = F.elu(self.linear2(x1))
+        x1 = F.elu(self.LayerNorm1(self.dropout1(self.linear1(xu))))
+        x1 = F.elu(self.LayerNorm2(self.linear2(x1)))
         x1 = self.linear3(x1)
 
-        x2 = torch.tanh(self.LayerNorm2(self.linear4(xu)))
-        x2 = F.elu(self.linear5(x2))
+        x2 = F.elu(self.LayerNorm3(self.dropout2(self.linear4(xu))))
+        x2 = F.elu(self.LayerNorm4(self.linear5(x2)))
         x2 = self.linear6(x2)
 
         return x1, x2
@@ -69,8 +75,12 @@ class GaussianPolicy(nn.Module):
         super(GaussianPolicy, self).__init__()
         
         self.linear1 = nn.Linear(num_inputs, hidden_dim)
+        self.dropout = nn.Dropout(0.01, inplace=True)
         self.linear2 = nn.Linear(hidden_dim, hidden_dim)
-        self.LayerNorm = nn.LayerNorm(hidden_dim)
+        self.LayerNorm1 = nn.LayerNorm(hidden_dim)
+        self.LayerNorm2 = nn.LayerNorm(hidden_dim)
+        self.LayerNorm3 = nn.LayerNorm(hidden_dim)
+        self.linear3 = nn.Linear(hidden_dim, hidden_dim)
 
         self.mean_linear = nn.Linear(hidden_dim, num_actions)
         self.log_std_linear = nn.Linear(hidden_dim, num_actions)
@@ -88,8 +98,9 @@ class GaussianPolicy(nn.Module):
                 (action_space.high + action_space.low) / 2.)
 
     def forward(self, state):
-        x = torch.tanh(self.LayerNorm((self.linear1(state))))
-        x = F.elu(self.linear2(x))
+        x = F.elu(self.LayerNorm1(self.dropout(self.linear1(state))))
+        x = F.elu(self.LayerNorm2(self.linear2(x)))
+        x = F.elu(self.LayerNorm3(self.linear3(x)))
         mean = self.mean_linear(x)
         log_std = self.log_std_linear(x)
         log_std = torch.clamp(log_std, min=LOG_SIG_MIN, max=LOG_SIG_MAX)
